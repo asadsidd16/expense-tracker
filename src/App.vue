@@ -1,10 +1,13 @@
 <template>
   <Header />
   <div class="container">
-    <Balance :total="total" />
+    <Balance :total="+total" />
     <IncomeExpenses :income="+income" :expenses="+expenses" />
-    <TransactionList :transactions="transactions" />
-    <AddTransaction />
+    <TransactionList
+      :transactions="transactions"
+      @transactionDeleted="handleTransactionDeleted"
+    />
+    <AddTransaction @transactionSubmitted="handleTransactionSubmitted" />
   </div>
 </template>
 
@@ -15,14 +18,21 @@ import IncomeExpenses from "@/components/IncomeExpenses.vue";
 import TransactionList from "@/components/TransactionList.vue";
 import AddTransaction from "@/components/AddTransaction.vue";
 
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 
-const transactions = ref([
-  { id: 1, text: "Paycheck", amount: 2229.99 },
-  { id: 2, text: "Flower", amount: -19.99 },
-  { id: 3, text: "Book", amount: 9.99 },
-  { id: 4, text: "Food", amount: 19.99 },
-]);
+import { useToast } from "vue-toastification";
+
+const toast = useToast();
+
+const transactions = ref([]);
+
+onMounted(() => {
+  const savedTransactions = JSON.parse(localStorage.getItem("transactions"));
+
+  if (savedTransactions) {
+    transactions.value = savedTransactions;
+  }
+});
 
 // Get total
 const total = computed(() => {
@@ -50,4 +60,37 @@ const expenses = computed(() => {
     }, 0)
     .toFixed(2);
 });
+
+//add transactions
+const handleTransactionSubmitted = (transactionData) => {
+  transactions.value.push({
+    id: generationUniqueId(),
+    text: transactionData.text,
+    amount: transactionData.amount,
+  });
+
+  saveTransactionsToLocalStorage();
+
+  toast.success("Transaction added");
+};
+
+const generationUniqueId = () => {
+  return Math.floor(Math.random() * 10000);
+};
+
+//delete transaction
+const handleTransactionDeleted = (id) => {
+  transactions.value = transactions.value.filter(
+    (transaction) => transaction.id !== id
+  );
+
+  saveTransactionsToLocalStorage();
+
+  toast.success("Transaction deleted");
+};
+
+//save to local storage
+const saveTransactionsToLocalStorage = () => {
+  localStorage.setItem("transactions", JSON.stringify(transactions.value));
+};
 </script>

@@ -1,6 +1,6 @@
 <template>
   <h4>Your Balance</h4>
-  <h1 id="balance">{{ Math.round(total * 100) / 100 }}</h1>
+  <h1 id="balance">${{ Math.round(total * 100) / 100 }}</h1>
 </template>
 
 <script setup>
